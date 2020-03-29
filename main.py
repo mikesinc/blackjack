@@ -1,7 +1,6 @@
 '''
 A simple blackjack game
 '''
-
 import random
 import os
 
@@ -13,7 +12,6 @@ def createDeck():
     for suit in suits:
         for number in numbers:
             deck.append((suit, number))
-
 
 def getValue(hand):
     sum = 0
@@ -47,18 +45,18 @@ def replay():
             print("invalid input")
 
 class User:
-    def __init__(self, hand):
+    def __init__(self, hand, bank):
         self.hand = hand
-        # self.bank = bank
+        self.bank = bank
 
-    # def bet(self):
-    #     self.bank -= bet
+    def bet(self, bet):
+        self.bank -= bet
 
-    # def win(self):
-    #     self.bank += bet*2
+    def win(self, bet):
+        self.bank += (bet*2)
 
-    # def push(self):
-    #     self.bank += bet
+    def push(self, bet):
+        self.bank += bet
         
     def __len__(self):
         aceCount = 0
@@ -110,23 +108,19 @@ def checkInstantWin(target):
         return True
 
 #game loop
-
+firstLoop = True
 while True:
     deck = []
     createDeck()
-    player = User([hit(), hit()])
+    
+    if firstLoop:
+        currentBank = 0
+
+    player = User([hit(), hit()], currentBank)
     dealer = Bot([hit(), hit()])
 
-    # while True:
-    #     print(f"Your balance: {player.bank}")
-    #     try:
-    #         bet = int(input("Place your bet! "))
-    #         if player.bank >= bet:
-    #             player.bet()
-    #             break
-    #         print("Insufficient funds!")
-    #     except:
-    #         print("Please enter a number for your bet value!")
+    bet = int(input("Place your bet!    $"))
+    player.bet(bet)
 
     print(f"The dealer has a {str(dealer)} and another hidden card")
     
@@ -138,8 +132,8 @@ while True:
 
         if checkInstantWin(player):
             print("lucky deal, you win! you were dealt 21!")
-            # print(f"You have received ${bet*2}!")
-            # player.win()
+            print(f"You have received ${bet}!")
+            player.win(bet)
             break
         action = input("hit or stay?")
 
@@ -151,20 +145,20 @@ while True:
             #check if player hit 21
             if checkInstantWin(player):
                 print("lucky deal, you win! you were dealt 21!")
-                # print(f"You have received ${bet*2}!")
-                # player.win()
+                print(f"You have received ${bet}!")
+                player.win(bet)
                 break
             #check if player busts
             if len(player) > 21:
                 print(f"game over! you bust at {len(player)} with {str(player)}")
-                # print(f"You have lost ${bet}!")
+                print(f"You have lost ${bet}!")
                 break
         elif action == "stay":
             #Reveal dealer hidden card
             print(f"The dealers hidden card is a {dealer.hand[1][1]} of {dealer.hand[1][0]}")
             if checkInstantWin(dealer):
                 print("unlucky deal, you lost! dealer dealt 21!")
-                # print(f"You have lost ${bet}!")
+                print(f"You have lost ${bet}!")
                 break
             #dealer keeps going until beats player or busts
             while len(dealer) < 21:
@@ -175,27 +169,35 @@ while True:
                 #check if dealer hit 21
                 if checkInstantWin(dealer):
                     print("unlucky deal, you lost! dealer dealt 21!")
-                    # print(f"You have lost ${bet}!")
+                    print(f"You have lost ${bet}!")
                     break
                 #check if dealer busts
                 if len(dealer) > 21:
                     print(f"you won! dealer bust at {len(dealer)} with {dealer.revealHand()}")
-                    # print(f"You have received ${bet*2}!")
-                    # player.win()
+                    print(f"You have received ${bet}!")
+                    player.win(bet)
                     break
                 #check if dealer wins
                 elif len(dealer) > len(player):
                     print(f"you lost! dealer has higher total of {len(dealer)}!")
-                    # print(f"You have lost ${bet}!")
+                    print(f"You have lost ${bet}!")
                     break
             if len(dealer) == len(player):
                 print(f"push! both scored 20!")
-                # print(f"Your bet of {bet} has been returned!")
-                # player.push()
+                print(f"Your bet of {bet} has been returned!")
+                player.push(bet)
             break
         else:
             print("invalid input")
+    firstLoop = False
+    currentBank = player.bank
+
+    if player.bank < 0:
+        print(f"You are down:   ${abs(player.bank)}!")
+    elif player.bank > 0:
+        print(f"You are up:   ${player.bank}!")
+    elif not firstLoop:
+        print(f"You are breaking even!")
+    
     if not replay():
         break
-        
-
